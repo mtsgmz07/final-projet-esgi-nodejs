@@ -1,0 +1,157 @@
+import { Router } from "express";
+import { userController } from "../controllers/user.controller";
+import { validateBody } from "../middlewares/validate.middleware";
+import { createUserSchema, updateUserSchema } from "../validators/user.validator";
+
+const router = Router();
+
+/**
+ * @openapi
+ * tags:
+ *   - name: Users
+ *     description: User CRUD endpoints
+ *
+ * components:
+ *   schemas:
+ *     UserRole:
+ *       type: string
+ *       enum: [USER, ADMIN, SUPER_ADMIN]
+ *     User:
+ *       type: object
+ *       properties:
+ *         _id: { type: string }
+ *         name: { type: string }
+ *         lastName: { type: string }
+ *         email: { type: string, format: email }
+ *         role: { $ref: '#/components/schemas/UserRole' }
+ *         weight: { type: number }
+ *         size: { type: number }
+ *         createdAt: { type: string, format: date-time }
+ *         updatedAt: { type: string, format: date-time }
+ *     CreateUserInput:
+ *       type: object
+ *       required: [name, lastName, email, password, role, weight, size]
+ *       properties:
+ *         name: { type: string, example: John }
+ *         lastName: { type: string, example: Doe }
+ *         email: { type: string, format: email, example: john@example.com }
+ *         password: { type: string, minLength: 6, example: secret123 }
+ *         role: { $ref: '#/components/schemas/UserRole' }
+ *         weight: { type: number, example: 75 }
+ *         size: { type: number, example: 180 }
+ *     UpdateUserInput:
+ *       type: object
+ *       properties:
+ *         name: { type: string }
+ *         lastName: { type: string }
+ *         email: { type: string, format: email }
+ *         password: { type: string, minLength: 6 }
+ *         role: { $ref: '#/components/schemas/UserRole' }
+ *         weight: { type: number }
+ *         size: { type: number }
+ */
+
+/**
+ * @openapi
+ * /users:
+ *   get:
+ *     summary: List all users
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: List of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/User' }
+ */
+router.get("/", userController.list);
+
+/**
+ * @openapi
+ * /users/{id}:
+ *   get:
+ *     summary: Get a user by id
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: The user
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/User' }
+ *       404: { description: User not found }
+ */
+router.get("/:id", userController.get);
+
+/**
+ * @openapi
+ * /users:
+ *   post:
+ *     summary: Create a new user
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/CreateUserInput' }
+ *     responses:
+ *       201:
+ *         description: Created
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/User' }
+ *       400: { description: Validation error }
+ *       409: { description: Email already in use }
+ */
+router.post("/", validateBody(createUserSchema), userController.create);
+
+/**
+ * @openapi
+ * /users/{id}:
+ *   patch:
+ *     summary: Update a user
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/UpdateUserInput' }
+ *     responses:
+ *       200:
+ *         description: Updated user
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/User' }
+ *       404: { description: User not found }
+ */
+router.patch("/:id", validateBody(updateUserSchema), userController.update);
+
+/**
+ * @openapi
+ * /users/{id}:
+ *   delete:
+ *     summary: Delete a user
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       204: { description: Deleted }
+ *       404: { description: User not found }
+ */
+router.delete("/:id", userController.remove);
+
+export default router;

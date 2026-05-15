@@ -1,11 +1,17 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
+import swaggerUi from "swagger-ui-express";
 import routes from "./routes/index";
 import { errorMiddleware } from "./middlewares/error.middleware";
+import { swaggerSpec } from "./swagger";
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get("/docs.json", (_req, res) => res.json(swaggerSpec));
+
 app.use(routes);
 app.use(errorMiddleware);
 

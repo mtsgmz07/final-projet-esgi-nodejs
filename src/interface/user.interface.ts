@@ -12,6 +12,6 @@ export interface User extends BaseInterface {
 
 export enum UserRole {
     USER = 'USER',
-    ADMIN = 'ADMIN',
-    SUPER_ADMIN = 'SUPER_ADMIN'
+    COACH = 'COACH',
+    ADMIN = 'ADMIN'
 }

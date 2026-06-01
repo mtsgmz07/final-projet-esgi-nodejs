@@ -7,7 +7,7 @@ import { UserRole } from "../interface/user.interface";
 
 const router = Router();
 
-router.use(authenticate, requireRole(UserRole.SUPER_ADMIN));
+router.use(authenticate, requireRole(UserRole.ADMIN));
 
 /**
  * @openapi
@@ -19,7 +19,7 @@ router.use(authenticate, requireRole(UserRole.SUPER_ADMIN));
  *   schemas:
  *     UserRole:
  *       type: string
- *       enum: [USER, ADMIN, SUPER_ADMIN]
+ *       enum: [USER, COACH, ADMIN]
  *     User:
  *       type: object
  *       properties:

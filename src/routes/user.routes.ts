@@ -1,9 +1,13 @@
 import { Router } from "express";
 import { userController } from "../controllers/user.controller";
 import { validateBody } from "../middlewares/validate.middleware";
+import { authenticate, requireRole } from "../middlewares/auth.middleware";
 import { createUserSchema, updateUserSchema } from "../validators/user.validator";
+import { UserRole } from "../interface/user.interface";
 
 const router = Router();
+
+router.use(authenticate, requireRole(UserRole.SUPER_ADMIN));
 
 /**
  * @openapi
@@ -57,6 +61,8 @@ const router = Router();
  *   get:
  *     summary: List all users
  *     tags: [Users]
+ *     security:
+ *       - BearerAuth: []
  *     responses:
  *       200:
  *         description: List of users
@@ -65,6 +71,8 @@ const router = Router();
  *             schema:
  *               type: array
  *               items: { $ref: '#/components/schemas/User' }
+ *       401: { description: Missing or invalid token }
+ *       403: { description: Forbidden — SUPER_ADMIN role required }
  */
 router.get("/", userController.list);
 
@@ -74,6 +82,8 @@ router.get("/", userController.list);
  *   get:
  *     summary: Get a user by id
  *     tags: [Users]
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -85,6 +95,8 @@ router.get("/", userController.list);
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/User' }
+ *       401: { description: Missing or invalid token }
+ *       403: { description: Forbidden — SUPER_ADMIN role required }
  *       404: { description: User not found }
  */
 router.get("/:id", userController.get);
@@ -95,6 +107,8 @@ router.get("/:id", userController.get);
  *   post:
  *     summary: Create a new user
  *     tags: [Users]
+ *     security:
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -107,6 +121,8 @@ router.get("/:id", userController.get);
  *           application/json:
  *             schema: { $ref: '#/components/schemas/User' }
  *       400: { description: Validation error }
+ *       401: { description: Missing or invalid token }
+ *       403: { description: Forbidden — SUPER_ADMIN role required }
  *       409: { description: Email already in use }
  */
 router.post("/", validateBody(createUserSchema), userController.create);
@@ -117,6 +133,8 @@ router.post("/", validateBody(createUserSchema), userController.create);
  *   patch:
  *     summary: Update a user
  *     tags: [Users]
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -133,6 +151,8 @@ router.post("/", validateBody(createUserSchema), userController.create);
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/User' }
+ *       401: { description: Missing or invalid token }
+ *       403: { description: Forbidden — SUPER_ADMIN role required }
  *       404: { description: User not found }
  */
 router.patch("/:id", validateBody(updateUserSchema), userController.update);
@@ -143,6 +163,8 @@ router.patch("/:id", validateBody(updateUserSchema), userController.update);
  *   delete:
  *     summary: Delete a user
  *     tags: [Users]
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -150,6 +172,8 @@ router.patch("/:id", validateBody(updateUserSchema), userController.update);
  *         schema: { type: string }
  *     responses:
  *       204: { description: Deleted }
+ *       401: { description: Missing or invalid token }
+ *       403: { description: Forbidden — SUPER_ADMIN role required }
  *       404: { description: User not found }
  */
 router.delete("/:id", userController.remove);

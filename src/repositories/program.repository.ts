@@ -4,6 +4,7 @@ import { ExerciceDto } from "../validators/program.validator";
 
 export type CreateProgramInput = {
     title: string;
+    description: string;
     user: string;
     exercices: ExerciceDto[];
 };

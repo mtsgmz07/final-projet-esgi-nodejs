@@ -11,4 +11,4 @@ const FavorisSchema = new Schema<Favoris>(
     }
 )
 
-export const FavorisModel = model<Favoris>('favoris', FavorisSchema);
+export const FavorisModel = model<Favoris>('favorites', FavorisSchema);

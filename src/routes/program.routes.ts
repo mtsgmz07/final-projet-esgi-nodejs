@@ -46,9 +46,10 @@ router.use(authenticate, requireRole(UserRole.COACH, UserRole.ADMIN));
  *         updatedAt: { type: string, format: date-time }
  *     CreateProgramInput:
  *       type: object
- *       required: [title, exercices]
+ *       required: [title, description, exercices]
  *       properties:
  *         title: { type: string, example: "Full Body Strength" }
+ *         description: { type: string, example: "A comprehensive full-body strength training program" }
  *         exercices:
  *           type: array
  *           minItems: 1

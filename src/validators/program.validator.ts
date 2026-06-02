@@ -8,11 +8,13 @@ export const exerciceSchema = z.object({
 
 export const createProgramSchema = z.object({
     title: z.string().min(1),
+    description: z.string().min(1),
     exercices: z.array(exerciceSchema).min(1, "At least one exercise is required"),
 });
 
 export const updateProgramSchema = z.object({
     title: z.string().min(1).optional(),
+    description: z.string().min(1).optional(),
     exercices: z.array(exerciceSchema).min(1, "At least one exercise is required").optional(),
 });
 

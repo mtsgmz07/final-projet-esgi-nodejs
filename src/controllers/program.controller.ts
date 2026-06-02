@@ -43,6 +43,7 @@ export const programController = {
         try {
             const program = await programRepository.create({
                 title: req.body.title,
+                description: req.body.description,
                 exercices: req.body.exercices,
                 user: req.user!.sub,
             });

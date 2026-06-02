@@ -16,18 +16,35 @@ export type UpdateProgramInput = {
 
 export const programRepository = {
     findAll: () =>
-        ProgramModel.find().populate("user", "-password").populate("exercices").lean(),
-
+        ProgramModel.find()
+            .populate({
+                path: "exercices",
+                select: "-__v",
+            })
+            .select("-__v -user")
+            .lean(),
     findByCoach: (userId: string) =>
-        ProgramModel.find({ user: userId as unknown as object }).populate("user", "-password").populate("exercices").lean(),
+        ProgramModel.find({ user: userId as unknown as object })
+            .populate({
+                path: "exercices",
+                select: "-__v",
+            })
+            .select("-__v -user")
+            .lean(),
 
     findById: (id: string) =>
-        ProgramModel.findById(id).populate("user", "-password").populate("exercices").lean(),
+        ProgramModel.findById(id)
+            .populate({
+                path: "exercices",
+                select: "-__v",
+            })
+            .select("-__v")
+            .lean(),
 
     create: async (data: CreateProgramInput) => {
         const createdExercices = await ExerciceModel.insertMany(data.exercices);
         const exerciceIds = createdExercices.map((e) => e._id);
-        return ProgramModel.create({ title: data.title, user: data.user, exercices: exerciceIds } as unknown as object);
+        return ProgramModel.create({ title: data.title, description: data.description, user: data.user, exercices: exerciceIds } as unknown as object);
     },
 
     update: async (id: string, data: UpdateProgramInput) => {
@@ -38,8 +55,11 @@ export const programRepository = {
             updatePayload.exercices = createdExercices.map((e) => e._id);
         }
         return ProgramModel.findByIdAndUpdate(id, updatePayload, { new: true, runValidators: true })
-            .populate("user", "-password")
-            .populate("exercices")
+            .populate({
+                path: "exercices",
+                select: "-__v"
+            })
+            .select("-__v")
             .lean();
     },
 

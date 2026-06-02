@@ -7,13 +7,13 @@ import { UserRole } from "../interface/user.interface";
 
 const router = Router();
 
-router.use(authenticate, requireRole(UserRole.COACH, UserRole.ADMIN));
+router.use(authenticate);
 
 /**
  * @openapi
  * tags:
  *   - name: Programs
- *     description: Program CRUD endpoints (COACH creates/manages own, ADMIN sees all)
+ *     description: Program CRUD endpoints
  *
  * components:
  *   schemas:
@@ -82,7 +82,7 @@ router.use(authenticate, requireRole(UserRole.COACH, UserRole.ADMIN));
  * @openapi
  * /programs:
  *   get:
- *     summary: List programs (COACH sees own, ADMIN sees all)
+ *     summary: List programs
  *     tags: [Programs]
  *     security:
  *       - BearerAuth: []
@@ -147,7 +147,7 @@ router.get("/:id", programController.get);
  *       401: { description: Missing or invalid token }
  *       403: { description: Forbidden — COACH or ADMIN role required }
  */
-router.post("/", validateBody(createProgramSchema), programController.create);
+router.post("/", requireRole(UserRole.COACH, UserRole.ADMIN), validateBody(createProgramSchema), programController.create);
 
 /**
  * @openapi
@@ -178,7 +178,7 @@ router.post("/", validateBody(createProgramSchema), programController.create);
  *       403: { description: Forbidden — not owner or ADMIN }
  *       404: { description: Program not found }
  */
-router.patch("/:id", validateBody(updateProgramSchema), programController.update);
+router.patch("/:id", requireRole(UserRole.COACH, UserRole.ADMIN), validateBody(updateProgramSchema), programController.update);
 
 /**
  * @openapi
@@ -199,6 +199,6 @@ router.patch("/:id", validateBody(updateProgramSchema), programController.update
  *       403: { description: Forbidden — not owner or ADMIN }
  *       404: { description: Program not found }
  */
-router.delete("/:id", programController.remove);
+router.delete("/:id", requireRole(UserRole.COACH, UserRole.ADMIN), programController.remove);
 
 export default router;

@@ -13,7 +13,7 @@ export const programController = {
     list: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const programs =
-                req.user!.role === UserRole.ADMIN
+                req.user!.role !== UserRole.COACH
                     ? await programRepository.findAll()
                     : await programRepository.findByCoach(req.user!.sub);
             res.json(programs);

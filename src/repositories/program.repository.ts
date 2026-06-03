@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { ProgramModel } from "../models/program.model";
 import { ExerciceModel } from "../models/exercice.model";
 import { ExerciceDto } from "../validators/program.validator";
@@ -14,32 +15,54 @@ export type UpdateProgramInput = {
     exercices?: ExerciceDto[];
 };
 
+const programAggregationPipeline = (matchStage: Record<string, unknown>) => [
+    { $match: matchStage },
+    {
+        $lookup: {
+            from: "notes",
+            localField: "_id",
+            foreignField: "program",
+            as: "_notes",
+        },
+    },
+    {
+        $addFields: {
+            notes: { $avg: "$_notes.note" },
+        },
+    },
+    {
+        $lookup: {
+            from: "exercices",
+            localField: "exercices",
+            foreignField: "_id",
+            as: "exercices",
+        },
+    },
+    {
+        $project: {
+            _notes: 0,
+            __v: 0,
+            user: 0,
+            "exercices.__v": 0,
+        },
+    },
+];
+
 export const programRepository = {
     findAll: () =>
-        ProgramModel.find()
-            .populate({
-                path: "exercices",
-                select: "-__v",
-            })
-            .select("-__v -user")
-            .lean(),
-    findByCoach: (userId: string) =>
-        ProgramModel.find({ user: userId as unknown as object })
-            .populate({
-                path: "exercices",
-                select: "-__v",
-            })
-            .select("-__v -user")
-            .lean(),
+        ProgramModel.aggregate(programAggregationPipeline({})),
 
-    findById: (id: string) =>
-        ProgramModel.findById(id)
-            .populate({
-                path: "exercices",
-                select: "-__v",
-            })
-            .select("-__v")
-            .lean(),
+    findByCoach: (userId: string) =>
+        ProgramModel.aggregate(
+            programAggregationPipeline({ user: new Types.ObjectId(userId) })
+        ),
+
+    findById: async (id: string) => {
+        const results = await ProgramModel.aggregate(
+            programAggregationPipeline({ _id: new Types.ObjectId(id) })
+        );
+        return results[0] ?? null;
+    },
 
     create: async (data: CreateProgramInput) => {
         const createdExercices = await ExerciceModel.insertMany(data.exercices);

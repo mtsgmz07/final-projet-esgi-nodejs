@@ -7,4 +7,5 @@ export interface Program extends BaseInterface {
     description: string
     user: User
     exercices: Exercice[]
+    notes?: number | null
 }

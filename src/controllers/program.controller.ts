@@ -28,11 +28,6 @@ export const programController = {
             const program = await programRepository.findById(req.params.id);
             if (!program) throw new HttpError(404, "Program not found");
 
-            const owner = (program.user as unknown as { _id: { toString(): string } })._id.toString();
-            if (req.user!.role !== UserRole.ADMIN && owner !== req.user!.sub) {
-                throw new HttpError(403, "Forbidden");
-            }
-
             res.json(program);
         } catch (err) {
             next(err);

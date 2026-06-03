@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { HttpError } from "../class/HttpError";
-import { UserRole } from "../interface/user.interface";
+import { User, UserRole } from "../interface/user.interface";
 
 interface JwtPayload {
     sub: string;

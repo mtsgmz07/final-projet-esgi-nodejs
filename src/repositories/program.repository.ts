@@ -27,7 +27,7 @@ const programAggregationPipeline = (matchStage: Record<string, unknown>) => [
     },
     {
         $addFields: {
-            notes: { $avg: "$_notes.note" },
+            notes: { $avg: "$_notes.note" }
         },
     },
     {
@@ -39,11 +39,26 @@ const programAggregationPipeline = (matchStage: Record<string, unknown>) => [
         },
     },
     {
+        $lookup: {
+            from: "users",
+            localField: "user",
+            foreignField: "_id",
+            as: "user",
+            pipeline: [
+                { $project: { name: 1, lastName: 1 } },
+            ],
+        },
+    },
+    {
+        $addFields: {
+            user: { $arrayElemAt: ["$user", 0] },
+        },
+    },
+    {
         $project: {
             _notes: 0,
             __v: 0,
-            user: 0,
-            "exercices.__v": 0,
+            "exercices.__v": 0
         },
     },
 ];

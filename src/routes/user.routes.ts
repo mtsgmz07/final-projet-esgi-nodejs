@@ -30,11 +30,12 @@ router.use(authenticate, requireRole(UserRole.ADMIN));
  *         role: { $ref: '#/components/schemas/UserRole' }
  *         weight: { type: number }
  *         size: { type: number }
+ *         age: { type: integer }
  *         createdAt: { type: string, format: date-time }
  *         updatedAt: { type: string, format: date-time }
  *     CreateUserInput:
  *       type: object
- *       required: [name, lastName, email, password, role, weight, size]
+ *       required: [name, lastName, email, password, role, weight, size, age]
  *       properties:
  *         name: { type: string, example: John }
  *         lastName: { type: string, example: Doe }
@@ -43,6 +44,7 @@ router.use(authenticate, requireRole(UserRole.ADMIN));
  *         role: { $ref: '#/components/schemas/UserRole' }
  *         weight: { type: number, example: 75 }
  *         size: { type: number, example: 180 }
+ *         age: { type: integer, example: 30 }
  *     UpdateUserInput:
  *       type: object
  *       properties:
@@ -53,6 +55,7 @@ router.use(authenticate, requireRole(UserRole.ADMIN));
  *         role: { $ref: '#/components/schemas/UserRole' }
  *         weight: { type: number }
  *         size: { type: number }
+ *         age: { type: integer }
  */
 
 /**

@@ -9,6 +9,7 @@ export const createUserSchema = z.object({
     role: z.enum(UserRole),
     weight: z.number().positive(),
     size: z.number().positive(),
+    age: z.number().int().positive(),
 });
 
 export const updateUserSchema = createUserSchema.partial();

@@ -8,6 +8,7 @@ export interface User extends BaseInterface {
     role: UserRole
     weight: number,
     size: number
+    age: number
 }
 
 export enum UserRole {

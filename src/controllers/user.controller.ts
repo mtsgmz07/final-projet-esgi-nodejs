@@ -12,9 +12,10 @@ const ensureValidId = (id: string) => {
 };
 
 export const userController = {
-    list: async (_req: Request, res: Response, next: NextFunction) => {
+    list: async (req: Request<unknown, unknown, unknown, { search?: string }>, res: Response, next: NextFunction) => {
         try {
-            const users = await userRepository.findAll();
+            const search = req.query.search?.trim() || undefined;
+            const users = await userRepository.findAll(search);
             res.json(users);
         } catch (err) {
             next(err);

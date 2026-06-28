@@ -5,7 +5,18 @@ export type CreateUserInput = Omit<User, "id" | "createdAt" | "updatedAt">;
 export type UpdateUserInput = Partial<CreateUserInput>;
 
 export const userRepository = {
-    findAll: () => UserModel.find().select("-password").lean(),
+    findAll: (search?: string) => {
+        const filter = search
+            ? {
+                $or: [
+                    { name: { $regex: search, $options: "i" } },
+                    { lastName: { $regex: search, $options: "i" } },
+                    { email: { $regex: search, $options: "i" } },
+                ],
+            }
+            : {};
+        return UserModel.find(filter).select("-password").lean();
+    },
 
     findById: (id: string) => UserModel.findById(id).select("-password").lean(),
 

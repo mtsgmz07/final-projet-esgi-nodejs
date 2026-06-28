@@ -66,6 +66,12 @@ router.use(authenticate, requireRole(UserRole.ADMIN));
  *     tags: [Users]
  *     security:
  *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         required: false
+ *         schema: { type: string }
+ *         description: Case-insensitive search on name, lastName and email
  *     responses:
  *       200:
  *         description: List of users

@@ -2,10 +2,68 @@ import { Router } from "express";
 import { userController } from "../controllers/user.controller";
 import { validateBody } from "../middlewares/validate.middleware";
 import { authenticate, requireRole } from "../middlewares/auth.middleware";
-import { createUserSchema, updateUserSchema } from "../validators/user.validator";
+import { createUserSchema, updateUserSchema, updateProfileSchema } from "../validators/user.validator";
 import { UserRole } from "../interface/user.interface";
 
 const router = Router();
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     UpdateProfileInput:
+ *       type: object
+ *       properties:
+ *         name: { type: string }
+ *         lastName: { type: string }
+ *         weight: { type: number }
+ *         size: { type: number }
+ *         age: { type: integer }
+ */
+
+/**
+ * @openapi
+ * /users/me:
+ *   get:
+ *     summary: Get the authenticated user's profile
+ *     tags: [Users]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: The current user's profile
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/User' }
+ *       401: { description: Missing or invalid token }
+ *       404: { description: User not found }
+ */
+router.get("/me", authenticate, userController.getMe);
+
+/**
+ * @openapi
+ * /users/me:
+ *   patch:
+ *     summary: Update the authenticated user's profile
+ *     tags: [Users]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/UpdateProfileInput' }
+ *     responses:
+ *       200:
+ *         description: Updated profile
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/User' }
+ *       400: { description: Validation error }
+ *       401: { description: Missing or invalid token }
+ *       404: { description: User not found }
+ */
+router.patch("/me", authenticate, validateBody(updateProfileSchema), userController.updateMe);
 
 router.use(authenticate, requireRole(UserRole.ADMIN));
 

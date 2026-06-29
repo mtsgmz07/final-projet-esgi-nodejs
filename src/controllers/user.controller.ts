@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import { isValidObjectId } from "mongoose";
 import { userRepository } from "../repositories/user.repository";
 import { HttpError } from "../class/HttpError";
-import { CreateUserDto, UpdateUserDto } from "../validators/user.validator";
+import { CreateUserDto, UpdateUserDto, UpdateProfileDto } from "../validators/user.validator";
 
 const SALT_ROUNDS = 10;
 
@@ -17,6 +17,28 @@ export const userController = {
             const search = req.query.search?.trim() || undefined;
             const users = await userRepository.findAll(search);
             res.json(users);
+        } catch (err) {
+            next(err);
+        }
+    },
+
+    getMe: async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            if (!req.user) throw new HttpError(401, "Not authenticated");
+            const user = await userRepository.findById(req.user.sub);
+            if (!user) throw new HttpError(404, "User not found");
+            res.json(user);
+        } catch (err) {
+            next(err);
+        }
+    },
+
+    updateMe: async (req: Request<unknown, unknown, UpdateProfileDto>, res: Response, next: NextFunction) => {
+        try {
+            if (!req.user) throw new HttpError(401, "Not authenticated");
+            const user = await userRepository.update(req.user.sub, req.body);
+            if (!user) throw new HttpError(404, "User not found");
+            res.json(user);
         } catch (err) {
             next(err);
         }

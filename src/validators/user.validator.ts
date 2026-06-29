@@ -14,5 +14,14 @@ export const createUserSchema = z.object({
 
 export const updateUserSchema = createUserSchema.partial();
 
+export const updateProfileSchema = z.object({
+    name: z.string().min(1),
+    lastName: z.string().min(1),
+    weight: z.number().positive(),
+    size: z.number().positive(),
+    age: z.number().int().positive(),
+}).partial();
+
 export type CreateUserDto = z.infer<typeof createUserSchema>;
 export type UpdateUserDto = z.infer<typeof updateUserSchema>;
+export type UpdateProfileDto = z.infer<typeof updateProfileSchema>;

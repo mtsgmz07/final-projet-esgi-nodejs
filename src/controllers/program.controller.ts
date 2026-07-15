@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { isValidObjectId } from "mongoose";
 import { programRepository } from "../repositories/program.repository";
+import { historyRepository } from "../repositories/history.repository";
 import { HttpError } from "../class/HttpError";
 import { CreateProgramDto, UpdateProgramDto } from "../validators/program.validator";
+import { StopHistoryDto } from "../validators/history.validator";
 import { UserRole } from "../interface/user.interface";
 
 const ensureValidId = (id: string) => {
@@ -79,6 +81,42 @@ export const programController = {
 
             await programRepository.delete(req.params.id);
             res.status(204).send();
+        } catch (err) {
+            next(err);
+        }
+    },
+
+    startTraining: async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+        try {
+            ensureValidId(req.params.id);
+
+            const program = await programRepository.findById(req.params.id);
+            if (!program) throw new HttpError(404, "Program not found");
+
+            const active = await historyRepository.findActiveByUser(req.user!.sub);
+            if (active) throw new HttpError(409, "A training session is already in progress");
+
+            const history = await historyRepository.start(req.user!.sub, req.params.id);
+            res.status(201).json(history);
+        } catch (err) {
+            next(err);
+        }
+    },
+
+    stopTraining: async (req: Request<{ id: string }, unknown, StopHistoryDto>, res: Response, next: NextFunction) => {
+        try {
+            ensureValidId(req.params.id);
+
+            const active = await historyRepository.findActiveByUser(req.user!.sub);
+            if (!active) throw new HttpError(404, "No training session in progress");
+
+            const activeProgramId = (active.programId as unknown as { toString(): string }).toString();
+            if (activeProgramId !== req.params.id) {
+                throw new HttpError(409, "No active training session for this program");
+            }
+
+            const history = await historyRepository.stop(active._id!.toString(), req.body.weight);
+            res.json(history);
         } catch (err) {
             next(err);
         }

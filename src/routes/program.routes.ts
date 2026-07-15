@@ -3,6 +3,7 @@ import { programController } from "../controllers/program.controller";
 import { validateBody } from "../middlewares/validate.middleware";
 import { authenticate, requireRole } from "../middlewares/auth.middleware";
 import { createProgramSchema, updateProgramSchema } from "../validators/program.validator";
+import { stopHistorySchema } from "../validators/history.validator";
 import { UserRole } from "../interface/user.interface";
 
 const router = Router();
@@ -76,6 +77,22 @@ router.use(authenticate);
  *             - title: "Pull Up"
  *               description: "Back and biceps compound movement, 4 sets of 8 reps"
  *               time: "2024-01-01T00:25:00.000Z"
+ *     History:
+ *       type: object
+ *       properties:
+ *         _id: { type: string }
+ *         userId: { type: string }
+ *         programId: { type: string }
+ *         start: { type: string, format: date-time }
+ *         end: { type: string, format: date-time, nullable: true }
+ *         weight: { type: number, nullable: true, example: 82.5 }
+ *         createdAt: { type: string, format: date-time }
+ *         updatedAt: { type: string, format: date-time }
+ *     StopHistoryInput:
+ *       type: object
+ *       required: [weight]
+ *       properties:
+ *         weight: { type: number, example: 82.5 }
  */
 
 /**
@@ -200,5 +217,62 @@ router.patch("/:id", requireRole(UserRole.COACH, UserRole.ADMIN), validateBody(u
  *       404: { description: Program not found }
  */
 router.delete("/:id", requireRole(UserRole.COACH, UserRole.ADMIN), programController.remove);
+
+/**
+ * @openapi
+ * /programs/{id}/start:
+ *   post:
+ *     summary: Start a training session for a program
+ *     tags: [Programs]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       201:
+ *         description: Training session started
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/History' }
+ *       400: { description: Invalid id }
+ *       401: { description: Missing or invalid token }
+ *       404: { description: Program not found }
+ *       409: { description: A training session is already in progress }
+ */
+router.post("/:id/start", programController.startTraining);
+
+/**
+ * @openapi
+ * /programs/{id}/stop:
+ *   post:
+ *     summary: Stop the ongoing training session for a program
+ *     tags: [Programs]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/StopHistoryInput' }
+ *     responses:
+ *       200:
+ *         description: Training session stopped
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/History' }
+ *       400: { description: Invalid id or missing weight }
+ *       401: { description: Missing or invalid token }
+ *       404: { description: No training session in progress }
+ *       409: { description: No active training session for this program }
+ */
+router.post("/:id/stop", validateBody(stopHistorySchema), programController.stopTraining);
 
 export default router;

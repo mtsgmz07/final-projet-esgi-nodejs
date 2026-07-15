@@ -161,14 +161,22 @@ const seed = async () => {
     const favoris = await FavorisModel.insertMany([...favorisPairs.values()]);
     console.log(`${favoris.length} favoris créés.`);
 
-    // 5. Historiques (référence user, program = string)
+    // 5. Historiques (référence user + program)
     const histories = await HistoryModel.insertMany(
-        Array.from({ length: 40 }, () => ({
-            user: pick(userIds),
-            weight: rand(40, 150),
-            program: pick(PROGRAM_TITLES),
-            time: randomDate(90),
-        }))
+        Array.from({ length: 40 }, () => {
+            const start = randomDate(90);
+            const hasEnded = Math.random() < 0.85;
+            const end = hasEnded
+                ? new Date(start.getTime() + rand(15, 90) * 60 * 1000)
+                : null;
+            return {
+                userId: pick(userIds),
+                programId: pick(programs)._id,
+                start,
+                end,
+                weight: hasEnded ? rand(40, 150) : null,
+            };
+        })
     );
     console.log(`${histories.length} historiques créés.`);
 

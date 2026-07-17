@@ -1,7 +1,13 @@
 import { Router } from "express";
 import { authController } from "../controllers/auth.controller";
 import { validateBody } from "../middlewares/validate.middleware";
-import { loginSchema, registerSchema } from "../validators/auth.validator";
+import {
+    loginSchema,
+    passwordResetRequestSchema,
+    registerSchema,
+    resetPasswordSchema,
+    verifyResetCodeSchema,
+} from "../validators/auth.validator";
 
 const router = Router();
 
@@ -105,5 +111,97 @@ router.post("/login", validateBody(loginSchema), authController.login);
  *       204: { description: Logged out }
  */
 router.post("/logout", authController.logout);
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     PasswordResetRequestInput:
+ *       type: object
+ *       required: [email]
+ *       properties:
+ *         email: { type: string, format: email, example: john@example.com }
+ *     VerifyResetCodeInput:
+ *       type: object
+ *       required: [email, code]
+ *       properties:
+ *         email: { type: string, format: email, example: john@example.com }
+ *         code: { type: string, example: "123456" }
+ *     ResetPasswordInput:
+ *       type: object
+ *       required: [new_password]
+ *       properties:
+ *         new_password: { type: string, minLength: 6, example: newSecret123 }
+ */
+
+/**
+ * @openapi
+ * /auth/password/reset-request:
+ *   post:
+ *     summary: Request a password reset code by email
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/PasswordResetRequestInput' }
+ *     responses:
+ *       200:
+ *         description: Generic confirmation, always returned regardless of whether the account exists
+ *       400: { description: Validation error }
+ */
+router.post(
+    "/password/reset-request",
+    validateBody(passwordResetRequestSchema),
+    authController.requestPasswordReset
+);
+
+/**
+ * @openapi
+ * /auth/password/verify-code:
+ *   post:
+ *     summary: Verify a password reset code and receive a short-lived reset token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/VerifyResetCodeInput' }
+ *     responses:
+ *       200:
+ *         description: Code valid — returns a reset_token valid for 3 minutes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 reset_token: { type: string }
+ *       400: { description: Invalid or expired code }
+ *       429: { description: Too many failed attempts, temporarily blocked }
+ */
+router.post(
+    "/password/verify-code",
+    validateBody(verifyResetCodeSchema),
+    authController.verifyPasswordResetCode
+);
+
+/**
+ * @openapi
+ * /auth/password/reset:
+ *   post:
+ *     summary: Reset the password using a reset_token obtained from verify-code
+ *     tags: [Auth]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/ResetPasswordInput' }
+ *     responses:
+ *       200: { description: Password reset successfully, all active sessions revoked }
+ *       401: { description: Missing, invalid or expired reset token }
+ */
+router.post("/password/reset", validateBody(resetPasswordSchema), authController.resetPassword);
 
 export default router;

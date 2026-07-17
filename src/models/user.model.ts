@@ -10,7 +10,8 @@ const UserSchema = new Schema<User>(
         role: { type: String, enum: Object.values(UserRole), required: true },
         weight: { type: Number, required: true },
         size: { type: Number, required: true },
-        age: { type: Number, required: true }
+        age: { type: Number, required: true },
+        passwordChangedAt: { type: Date, default: null }
     },
     {
         timestamps: true

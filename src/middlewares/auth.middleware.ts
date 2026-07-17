@@ -1,12 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { HttpError } from "../class/HttpError";
-import { User, UserRole } from "../interface/user.interface";
+import { UserRole } from "../interface/user.interface";
+import { userRepository } from "../repositories/user.repository";
 
 interface JwtPayload {
     sub: string;
     email: string;
     role: UserRole;
+    iat: number;
 }
 
 declare global {
@@ -23,12 +25,19 @@ const extractToken = (req: Request): string | undefined => {
     return req.cookies?.token;
 };
 
-export const authenticate = (req: Request, _res: Response, next: NextFunction) => {
+export const authenticate = async (req: Request, _res: Response, next: NextFunction) => {
     const token = extractToken(req);
     if (!token) return next(new HttpError(401, "Missing authentication token"));
 
     try {
-        req.user = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
+        const payload = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
+
+        const user = await userRepository.findById(payload.sub);
+        if (user?.passwordChangedAt && payload.iat * 1000 < new Date(user.passwordChangedAt).getTime()) {
+            return next(new HttpError(401, "Token has been revoked, please login again"));
+        }
+
+        req.user = payload;
         next();
     } catch {
         next(new HttpError(401, "Invalid or expired token"));

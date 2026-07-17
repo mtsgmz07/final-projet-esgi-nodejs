@@ -9,6 +9,7 @@ export interface User extends BaseInterface {
     weight: number,
     size: number
     age: number
+    passwordChangedAt?: Date | null
 }
 
 export enum UserRole {

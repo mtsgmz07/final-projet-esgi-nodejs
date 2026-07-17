@@ -34,5 +34,12 @@ export const userRepository = {
             .select("-password")
             .lean(),
 
+    updatePassword: (id: string, hashedPassword: string) =>
+        UserModel.findByIdAndUpdate(
+            id,
+            { password: hashedPassword, passwordChangedAt: new Date() },
+            { new: true }
+        ).lean(),
+
     delete: (id: string) => UserModel.findByIdAndDelete(id).lean(),
 };

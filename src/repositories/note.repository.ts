@@ -16,7 +16,7 @@ export const noteRepository = {
     findById: (id: string) =>
         NoteModel.findById(id).lean(),
 
-    create: (userId: string, programId: string, note: string) =>
+    create: (userId: string, programId: string, note: number) =>
         NoteModel.create({ user: userId, program: programId, note }),
 
     delete: (id: string) =>

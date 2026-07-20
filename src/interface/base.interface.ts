@@ -1,4 +1,4 @@
-export interface BaseInterface extends Document {
+export interface BaseInterface {
     id: string
     createdAt: Date
     updatedAt: Date

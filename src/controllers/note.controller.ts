@@ -5,6 +5,7 @@ import { programRepository } from "../repositories/program.repository";
 import { noteRepository } from "../repositories/note.repository";
 import { UserRole } from "../interface/user.interface";
 import { Program } from "../interface/program.interface";
+import { CreateNoteDto } from "../validators/note.validator";
 
 export const noteController = {
     listByProgram: async (req: Request<{ programId: string }>, res: Response, next: NextFunction) => {
@@ -19,7 +20,7 @@ export const noteController = {
         }
     },
 
-    create: async (req: Request<{ programId: string }>, res: Response, next: NextFunction) => {
+    create: async (req: Request<{ programId: string }, unknown, CreateNoteDto>, res: Response, next: NextFunction) => {
         try {
             if (!isValidObjectId(req.params.programId)) {
                 return next(new HttpError(400, "Invalid program id"));

@@ -15,7 +15,7 @@ export const historyRepository = {
     findByUser: (userId: string) =>
         HistoryModel.find({ userId })
             .populate({ path: "programId", select: "title description" })
-            .select("start end")
+            .select("start end weight")
             .sort({ start: -1 })
             .lean(),
 };

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { MulterError } from 'multer';
 import { HttpError } from "../class/HttpError";
 
 export const errorMiddleware = (err: Error, _req: Request, res: Response, _next: NextFunction) => {
@@ -6,7 +7,12 @@ export const errorMiddleware = (err: Error, _req: Request, res: Response, _next:
         res.status(err.statusCode).json({ status: err.statusCode,  error: err.message });
         return;
     }
-    
+
+    if (err instanceof MulterError) {
+        res.status(400).json({ status: 400, error: err.message });
+        return;
+    }
+
     console.error("Error:", err);
     res.status(500).json({ error: "Internal server error" });
 };

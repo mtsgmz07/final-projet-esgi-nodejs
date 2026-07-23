@@ -44,6 +44,7 @@ export const authController = {
             setTokenCookie(res, token);
 
             res.status(201).json({ token });
+            await mailer.sendRegister(user.email);
         } catch (err) {
             next(err);
         }
@@ -62,7 +63,9 @@ export const authController = {
             const token = signToken({ _id: user._id, email: user.email, role: user.role });
             setTokenCookie(res, token);
 
+
             res.json({ token });
+            await mailer.sendNewLogin(email);
         } catch (err) {
             next(err);
         }

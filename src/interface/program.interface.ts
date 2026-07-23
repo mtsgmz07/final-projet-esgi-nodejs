@@ -8,4 +8,6 @@ export interface Program extends BaseInterface {
     user: User
     exercices: Exercice[]
     notes?: number | null
+    // Durée totale du programme en timestamp (ms) = somme des durées des exercices
+    totalTime?: number
 }

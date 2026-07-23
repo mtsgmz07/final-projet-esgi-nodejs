@@ -15,8 +15,20 @@ export type UpdateProgramInput = {
     exercices?: ExerciceDto[];
 };
 
-const programAggregationPipeline = (matchStage: Record<string, unknown>) => [
-    { $match: matchStage },
+export type ListProgramsOptions = {
+    search?: string;
+    sortByRating?: boolean;
+};
+
+const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const programAggregationPipeline = (matchStage: Record<string, unknown>, options: ListProgramsOptions = {}) => [
+    {
+        $match: {
+            ...matchStage,
+            ...(options.search ? { title: { $regex: escapeRegex(options.search), $options: "i" } } : {}),
+        },
+    },
     {
         $lookup: {
             from: "notes",
@@ -36,6 +48,12 @@ const programAggregationPipeline = (matchStage: Record<string, unknown>) => [
             localField: "exercices",
             foreignField: "_id",
             as: "exercices",
+        },
+    },
+    {
+        // Durée totale du programme = somme des durées (timestamps ms) de ses exercices
+        $addFields: {
+            totalTime: { $sum: "$exercices.time" },
         },
     },
     {
@@ -61,15 +79,17 @@ const programAggregationPipeline = (matchStage: Record<string, unknown>) => [
             "exercices.__v": 0
         },
     },
+    // -1 sorts highest average note first; programs without any note come last
+    ...(options.sortByRating ? [{ $sort: { notes: -1 as const } }] : []),
 ];
 
 export const programRepository = {
-    findAll: () =>
-        ProgramModel.aggregate(programAggregationPipeline({})),
+    findAll: (options: ListProgramsOptions = {}) =>
+        ProgramModel.aggregate(programAggregationPipeline({}, options)),
 
-    findByCoach: (userId: string) =>
+    findByCoach: (userId: string, options: ListProgramsOptions = {}) =>
         ProgramModel.aggregate(
-            programAggregationPipeline({ user: new Types.ObjectId(userId) })
+            programAggregationPipeline({ user: new Types.ObjectId(userId) }, options)
         ),
 
     findById: async (id: string) => {
@@ -102,4 +122,14 @@ export const programRepository = {
     },
 
     delete: (id: string) => ProgramModel.findByIdAndDelete(id).lean(),
+
+    setExerciceImages: (updates: { exerciceId: string; imageUrl: string }[]) =>
+        ExerciceModel.bulkWrite(
+            updates.map((u) => ({
+                updateOne: {
+                    filter: { _id: new Types.ObjectId(u.exerciceId) },
+                    update: { $set: { imageUrl: u.imageUrl } },
+                },
+            }))
+        ),
 };

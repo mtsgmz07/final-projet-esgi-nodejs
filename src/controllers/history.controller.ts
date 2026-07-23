@@ -24,12 +24,13 @@ export const historyController = {
         try {
             const histories = await historyRepository.findByUser(req.user!.sub);
             const result = histories.map((history) => {
-                const program = history.programId as unknown as { title: string; description: string };
+                const program = history.programId as unknown as { title: string; description: string; };
                 return {
                     programName: program.title,
                     programDescription: program.description,
                     duration: formatDuration(history.start, history.end),
                     date: formatDate(history.start),
+                    weight: history.weight,
                 };
             });
 

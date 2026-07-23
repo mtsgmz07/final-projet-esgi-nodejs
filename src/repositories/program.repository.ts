@@ -22,13 +22,10 @@ export type ListProgramsOptions = {
 
 const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const programAggregationPipeline = (matchStage: Record<string, unknown>, options: ListProgramsOptions = {}) => [
-    {
-        $match: {
-            ...matchStage,
-            ...(options.search ? { title: { $regex: escapeRegex(options.search), $options: "i" } } : {}),
-        },
-    },
+// Enrichit un document programme : moyenne des notes, exercices peuplés,
+// durée totale et coach projeté. Réutilisable là où l'on veut la même forme
+// que la liste des programmes (ex: la liste des favoris).
+export const programEnrichmentStages = (options: ListProgramsOptions = {}) => [
     {
         $lookup: {
             from: "notes",
@@ -81,6 +78,16 @@ const programAggregationPipeline = (matchStage: Record<string, unknown>, options
     },
     // -1 sorts highest average note first; programs without any note come last
     ...(options.sortByRating ? [{ $sort: { notes: -1 as const } }] : []),
+];
+
+const programAggregationPipeline = (matchStage: Record<string, unknown>, options: ListProgramsOptions = {}) => [
+    {
+        $match: {
+            ...matchStage,
+            ...(options.search ? { title: { $regex: escapeRegex(options.search), $options: "i" } } : {}),
+        },
+    },
+    ...programEnrichmentStages(options),
 ];
 
 export const programRepository = {

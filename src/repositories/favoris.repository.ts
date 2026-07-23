@@ -1,14 +1,32 @@
+import { Types } from "mongoose";
 import { FavorisModel } from "../models/favoris.model";
+import { programEnrichmentStages } from "./program.repository";
 
 export const favorisRepository = {
     findByUser: (userId: string) =>
-        FavorisModel.find({ user: userId as unknown as object })
-            .populate({
-                path: "program",
-                select: "-user -exercices -__v",
-            })
-            .select("-__v -user")
-            .lean(),
+        FavorisModel.aggregate([
+            { $match: { user: new Types.ObjectId(userId) } },
+            {
+                $lookup: {
+                    from: "programs",
+                    localField: "program",
+                    foreignField: "_id",
+                    as: "program",
+                    pipeline: programEnrichmentStages(),
+                },
+            },
+            { $addFields: { program: { $arrayElemAt: ["$program", 0] } } },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "user",
+                    foreignField: "_id",
+                    as: "user",
+                    pipeline: [{ $project: { name: 1, lastName: 1 } }],
+                },
+            },
+            { $addFields: { user: { $arrayElemAt: ["$user", 0] } } },
+        ]),
 
     findByUserAndProgram: (userId: string, programId: string) =>
         FavorisModel.findOne({
